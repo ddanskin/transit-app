@@ -12,7 +12,11 @@ class Subway_Line
     end
 
     def transfer_station=(line,station)
-        @transfer_stations[line.to_sym]
+        if @transfer_stations.has_key? line
+            @transfer_stations.values_at(line.to_sym).push(station)
+        else
+            @transfer_stations[line.to_sym] = [station]
+        end
     end
 end
 
@@ -36,6 +40,12 @@ class MTA
     def add_line(line_name, stops)
         new_line = Subway_Line.new(line_name, stops)
         @lines[line_name.to_sym] = new_line
+        @lines.keys.each { |key|
+            get_shared_stops(key, @lines[line_name.to_sym]).each { |stop|
+                @lines[key.to_sym].transfer_stations(line_name.to_sym, stop)
+                @lines[line_name.to_sym].transfer_stations(key.to_sym, stop)
+            }
+        }
     end
 
     def calculate(start_line, start_point, end_line, end_point)
